@@ -1,5 +1,6 @@
 "use client";
 
+import CSVuploader from './CSVuploader';
 import { useState } from "react";
 
 export default function Home() {
@@ -101,6 +102,14 @@ export default function Home() {
           </p>
 
           <hr className="hr" />
+	  
+	  <CSVuploader 
+  	    userId={loggedInUser.id} 
+  	    setTradeMessage={setTradeMessage} 
+   	    setIsTradeError={setIsTradeError} 
+	  />
+
+	  <hr className="hr" style={{ margin: '20px 0' }} />
 
           <h3 className="dashboardSectionTitle">Log a Stock Transaction</h3>
           <form onSubmit={handleLogTransaction} className="form">
