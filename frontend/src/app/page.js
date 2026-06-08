@@ -63,7 +63,7 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: loggedInUser.id,
+          user_id: loggedInUser?.id,
           ticker,
           type,
           quantity: parseFloat(quantity),
@@ -91,25 +91,33 @@ export default function Home() {
     }
   };
 
+  // --- VIEW 1: LOGGED IN USER DASHBOARD ---
   if (loggedInUser) {
     return (
       <main className="page">
         <div className="card">
           <h1 className="dashboardTitle">Monopoly Dashboard</h1>
           <p className="centerText">
-            Logged in as: <strong>{loggedInUser.email}</strong> (ID:{" "}
-            {loggedInUser.id})
+            Logged in as: <strong>{loggedInUser.email}</strong> (ID: {loggedInUser.id})
           </p>
 
           <hr className="hr" />
-	  
-	  <CSVuploader 
-  	    userId={loggedInUser.id} 
-  	    setTradeMessage={setTradeMessage} 
-   	    setIsTradeError={setIsTradeError} 
-	  />
 
-	  <hr className="hr" style={{ margin: '20px 0' }} />
+          {/* 🌟 Top-Snapped Banner Updates */}
+          {tradeMessage && (
+            <div className={`message ${isTradeError ? "error" : "success"}`}>
+              {tradeMessage}
+            </div>
+          )}
+
+          {/* 📥 Drag & Drop File Upload Component */}
+          <CSVuploader
+            userId={loggedInUser?.id}
+            setTradeMessage={setTradeMessage}
+            setIsTradeError={setIsTradeError}
+          />
+
+          <hr className="hr" style={{ margin: '20px 0' }} />
 
           <h3 className="dashboardSectionTitle">Log a Stock Transaction</h3>
           <form onSubmit={handleLogTransaction} className="form">
@@ -179,12 +187,6 @@ export default function Home() {
             </button>
           </form>
 
-          {tradeMessage && (
-            <div className={`message ${isTradeError ? "error" : "success"}`}>
-              {tradeMessage}
-            </div>
-          )}
-
           <button
             className="logoutButton"
             onClick={() => {
@@ -199,6 +201,7 @@ export default function Home() {
     );
   }
 
+  // --- VIEW 2: LOGGED OUT AUTHENTICATION PORTAL ---
   return (
     <main className="page">
       <div className="card">

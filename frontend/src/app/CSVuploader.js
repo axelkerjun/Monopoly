@@ -3,11 +3,16 @@ import Papa from 'papaparse';
 
 export default function CSVuploader({ userId, setTradeMessage, setIsTradeError }) {
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragActive, setIsDragActive] = useState(false);
   const [currentProgress, setCurrentProgress] = useState("");
-  
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+
+  // Master execution loop shared by both click-uploads and drop-uploads
+  const processFilePipeline = (file) => {
+    if (!file) {
+      setIsTradeError(true);
+      setTradeMessage("⚠️ No file detected. Please choose a valid CSV file.");
+      return;
+    }
 
     setTradeMessage("");
     setIsTradeError(false);
@@ -16,9 +21,20 @@ export default function CSVuploader({ userId, setTradeMessage, setIsTradeError }
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
+      error: (parseError) => {
+        console.error("PapaParse native error:", parseError);
+        setIsTradeError(true);
+        setTradeMessage(`⚠️ File Reading Error: ${parseError.message}`);
+        setIsUploading(false);
+      },
       complete: async (results) => {
         const parsedRows = results.data;
-        console.log("Starting bulk upload for rows:", parsedRows);
+        if (!parsedRows || parsedRows.length === 0) {
+          setIsTradeError(true);
+          setTradeMessage("⚠️ Upload failed: The uploaded file appears to be empty.");
+          setIsUploading(false);
+          return;
+        }
 
         let successCount = 0;
         let lastLoggedMessage = "";
@@ -26,13 +42,9 @@ export default function CSVuploader({ userId, setTradeMessage, setIsTradeError }
         try {
           for (let i = 0; i < parsedRows.length; i++) {
             const row = parsedRows[i];
-            
-            // 1. Sanitize keys
             const cleanRow = {};
             Object.keys(row).forEach(key => {
-              if (key) {
-                cleanRow[key.trim().toLowerCase()] = row[key] ? row[key].toString().trim() : "";
-              }
+              if (key) cleanRow[key.trim().toLowerCase()] = row[key] ? row[key].toString().trim() : "";
             });
 
             const csvTicker = cleanRow['contract code'] || cleanRow['ticker'] || "";
@@ -41,56 +53,58 @@ export default function CSVuploader({ userId, setTradeMessage, setIsTradeError }
             const csvPrice = cleanRow['avg price'] || cleanRow['price'] || "0";
             const csvDate = cleanRow['business date'] || cleanRow['transaction_date'] || cleanRow['date'] || new Date().toISOString().split('T')[0];
 
+            if (!csvTicker || !csvAction) continue;
+
+            const finalQuantity = parseFloat(csvQuantity);
+            const finalPrice = parseFloat(csvPrice);
+
+            if (isNaN(finalQuantity) || isNaN(finalPrice) || finalQuantity <= 0 || finalPrice < 0) continue;
+
             const formattedTransaction = {
               user_id: userId,
-              ticker: csvTicker,                    
-              type: csvAction,                      
-              quantity: parseFloat(csvQuantity),
-              price: parseFloat(csvPrice),
+              ticker: csvTicker.toUpperCase(),                    
+              type: csvAction.toUpperCase(),                      
+              quantity: finalQuantity,
+              price: finalPrice,
               transaction_date: csvDate
             };
 
-            if (!formattedTransaction.ticker || !formattedTransaction.type) {
-              console.warn("Skipping empty/corrupt row:", row);
-              continue;
-            }
-
-            // Update UI progress tracker
             setCurrentProgress(`Processing row ${i + 1} of ${parsedRows.length} (${formattedTransaction.ticker})...`);
 
-            // 2. Send request to backend
-            const response = await fetch("/api/transactions", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(formattedTransaction),
-            });
+            try {
+              const response = await fetch("/api/transactions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formattedTransaction),
+              });
 
-            const data = await response.json();
+              const data = await response.json();
+              if (!response.ok) throw new Error(data.error || "Server rejection");
 
-            if (!response.ok) {
-              throw new Error(data.error || `Failed to save ${formattedTransaction.ticker}`);
+              successCount++;
+              lastLoggedMessage = `${formattedTransaction.type} ${formattedTransaction.quantity} shares of ${formattedTransaction.ticker}`;
+              await new Promise(resolve => setTimeout(resolve, 80));
+
+            } catch (rowError) {
+              console.error(`❌ DB error on row ${i + 1}:`, rowError.message);
+              setIsTradeError(true);
+              setTradeMessage(`⚠️ Error saving ${formattedTransaction.ticker}: ${rowError.message}`);
             }
-
-            successCount++;
-            lastLoggedMessage = `${data.transaction.type} ${data.transaction.quantity} shares of ${data.transaction.ticker}`;
-            
-            // Optional: short 100ms artificial delay to prevent slamming the database connection
-            await new Promise(resolve => setTimeout(resolve, 100));
           }
 
-          // Loop completed perfectly!
           if (successCount > 0) {
             setIsTradeError(false);
-            setTradeMessage(`🎉 CSV Bulk Success! Loaded ${successCount} entries. Latest: Logged ${lastLoggedMessage}`);
-            e.target.value = "";
-	  }
+            setTradeMessage(`🎉 CSV Bulk Success! Loaded ${successCount} entries. Latest: ${lastLoggedMessage}`);
+          } else {
+            setIsTradeError(true);
+            setTradeMessage("⚠️ Upload processed: No valid or new transactions could be synchronized.");
+          }
 
-        } catch (err) {
-          console.error("Pipeline crashed:", err.message);
+        } catch (pipelineFatalError) {
+          console.error(pipelineFatalError);
           setIsTradeError(true);
-          setTradeMessage(`CSV Pipeline Error: ${err.message}`);
+          setTradeMessage(`🚨 Critical upload error: ${pipelineFatalError.message}`);
         } finally {
-          // Always turn off loading screen even if it fails
           setIsUploading(false);
           setCurrentProgress("");
         }
@@ -98,23 +112,93 @@ export default function CSVuploader({ userId, setTradeMessage, setIsTradeError }
     });
   };
 
+  // Drag and Drop Browser Window Handlers
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setIsDragActive(true);
+    } else if (e.type === "dragleave") {
+      setIsDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processFilePipeline(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      processFilePipeline(e.target.files[0]);
+      e.target.value = ""; // Clear file selector string
+    }
+  };
+
+  // Dynamic style engine depending on upload states
+  const getContainerStyle = () => {
+    const baseStyle = {
+      padding: '40px 20px',
+      border: '2px dashed #b5b5b5',
+      borderRadius: '12px',
+      textAlign: 'center',
+      margin: '20px 0',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease-in-out',
+      backgroundColor: '#fafafa',
+      position: 'relative'
+    };
+
+    if (isDragActive) {
+      return { ...baseStyle, border: '2px solid #0066cc', backgroundColor: '#e6f2ff' };
+    }
+    if (isUploading) {
+      return { ...baseStyle, border: '2px dashed #0066cc', backgroundColor: '#f0f7ff', cursor: 'wait' };
+    }
+    return baseStyle;
+  };
+
   return (
-    <div style={{ padding: '20px', border: '2px dashed #ccc', borderRadius: '8px', textAlign: 'center', margin: '15px 0', backgroundColor: isUploading ? '#f0f7ff' : '#fafafa' }}>
-      <p style={{ margin: '0 0 12px 0', fontWeight: 'bold', color: '#333' }}>
-        {isUploading ? "Uploading Broker Data..." : "Import Broker Statement (CSV)"}
-      </p>
-      
+    <div 
+      style={getContainerStyle()}
+      onDragEnter={handleDrag}
+      onDragOver={handleDrag}
+      onDragLeave={handleDrag}
+      onDrop={handleDrop}
+      onClick={() => !isUploading && document.getElementById('csvFileInput').click()}
+    >
+      {/* Hidden native input element triggered by click wrapper */}
+      <input 
+        id="csvFileInput"
+        type="file" 
+        accept=".csv" 
+        onChange={handleFileChange} 
+        disabled={isUploading}
+        style={{ display: 'none' }}
+      />
+
       {isUploading ? (
-        <div style={{ color: '#0066cc', fontWeight: '500', fontSize: '14px' }}>
-          ⏳ {currentProgress}
+        <div>
+          <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#0066cc' }}>Uploading Broker Data...</p>
+          <div style={{ color: '#555', fontSize: '14px' }}>⏳ {currentProgress}</div>
         </div>
       ) : (
-        <input 
-          type="file" 
-          accept=".csv" 
-          onChange={handleFileUpload} 
-          style={{ cursor: 'pointer', fontSize: '14px' }}
-        />
+        <div>
+          <div style={{ fontSize: '32px', marginBottom: '10px' }}>📥</div>
+          <p style={{ margin: '0 0 6px 0', fontWeight: '600', color: isDragActive ? '#0066cc' : '#333', fontSize: '16px' }}>
+            {isDragActive ? "Drop your file here!" : "Drag & drop your statement here, or click to browse"}
+          </p>
+          <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#777' }}>Supports standard .csv statement exports</p>
+          
+          <div style={{ fontSize: '11px', color: '#888', borderTop: '1px solid #eee', paddingTop: '10px', display: 'inline-block', width: '80%' }}>
+            <strong>Required Structure:</strong> <code>Contract Code</code>, <code>Action</code>, <code>Filled Qty</code>, <code>Avg Price</code>
+          </div>
+        </div>
       )}
     </div>
   );
