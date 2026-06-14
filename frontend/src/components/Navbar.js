@@ -28,12 +28,6 @@ export default function Navbar() {
         Transactions
       </button>
 
-      <button
-        className="navButton"
-        onClick={() => router.push("/reports")}
-      >
-        Reports
-      </button>
     </div>
   );
 }
