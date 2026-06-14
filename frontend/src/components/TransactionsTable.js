@@ -18,6 +18,14 @@ export default function TransactionsTable({ userId }) {
     transaction_date: "",
   });
 
+  const formatDate = (dateString) => {
+  if (!dateString) return "-";
+
+  const date = new Date(dateString);
+
+  return date.toLocaleDateString("en-GB");
+};
+
   const numberFormatter = useMemo(
     () =>
       new Intl.NumberFormat(undefined, {
@@ -160,7 +168,7 @@ export default function TransactionsTable({ userId }) {
             <tbody>
               {transactions.map((tx) => (
                 <tr key={tx.id}>
-                  <td>{tx.transaction_date?.slice(0, 10) || "-"}</td>
+                  <td>{formatDate(tx.transaction_date)}</td>
                   <td style={{ fontWeight: 700 }}>{tx.ticker}</td>
                   <td>{tx.type}</td>
                   <td>{numberFormatter.format(Number(tx.quantity) || 0)}</td>
