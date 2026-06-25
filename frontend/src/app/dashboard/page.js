@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import CSVuploader from "@/components/CSVuploader";
 import SummaryCards from "@/components/SummaryCards";
 import Navbar from "@/components/Navbar";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function DashboardPage() {
   const router = useRouter();

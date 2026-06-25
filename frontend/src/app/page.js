@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function Home() {
   const router = useRouter();
@@ -18,8 +17,8 @@ export default function Home() {
     setIsError(false);
 
     const endpoint = isLoginMode
-      ? `${API_BASE_URL}/api/auth/login`
-      : `${API_BASE_URL}/api/auth/register`;
+      ? `/api/auth/login`
+      : `/api/auth/register`;
 
     try {
       const response = await fetch(endpoint, {

@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
 function formatMoney(value, currency = "USD") {
   const num = Number(value) || 0;
 
@@ -92,7 +90,7 @@ export default function SummaryCards({ userId }) {
         setLoading(true);
         setError("");
 
-        const holdingsRes = await fetch(`${API_BASE_URL}/api/holdings/${userId}`);
+        const holdingsRes = await fetch(`/api/holdings/${userId}`);
         const holdingsData = await holdingsRes.json();
 
         if (!holdingsRes.ok) {
