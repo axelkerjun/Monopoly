@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import TickerAutocomplete from "@/components/TickerAutocomplete";
 
 export default function BuySellForm({ userId }) {
   const [ticker, setTicker] = useState("");
@@ -63,14 +64,7 @@ export default function BuySellForm({ userId }) {
       <form onSubmit={handleSubmit} className="form">
         <div className="field">
           <label>Stock Ticker</label>
-          <input
-            className="input"
-            type="text"
-            placeholder="e.g. AAPL"
-            value={ticker}
-            onChange={(e) => setTicker(e.target.value)}
-            required
-          />
+          <TickerAutocomplete value={ticker} onChange={setTicker} />
         </div>
 
         <div className="field">

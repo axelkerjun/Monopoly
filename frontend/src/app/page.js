@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function Home() {
   const router = useRouter();
@@ -16,13 +17,20 @@ export default function Home() {
     setMessage("");
     setIsError(false);
 
-    const endpoint = isLoginMode ? "/api/auth/login" : "/api/auth/register";
+    const endpoint = isLoginMode
+      ? `${API_BASE_URL}/api/auth/login`
+      : `${API_BASE_URL}/api/auth/register`;
 
     try {
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
       });
 
       const data = await response.json();
@@ -38,10 +46,11 @@ export default function Home() {
         setMessage("Success! Account created. You can now log in.");
         setEmail("");
         setPassword("");
+        setIsLoginMode(true);
       }
     } catch (err) {
       setIsError(true);
-      setMessage(err.message);
+      setMessage(err.message || "Authentication failed");
     }
   };
 
@@ -84,6 +93,7 @@ export default function Home() {
           onClick={() => {
             setIsLoginMode(!isLoginMode);
             setMessage("");
+            setIsError(false);
           }}
         >
           {isLoginMode

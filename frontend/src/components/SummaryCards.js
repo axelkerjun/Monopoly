@@ -1,78 +1,198 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { calculatePortfolio } from "@/lib/calculations";
 
-function formatMoney(value) {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+function formatMoney(value, currency = "USD") {
   const num = Number(value) || 0;
+
   return num.toLocaleString(undefined, {
     style: "currency",
-    currency: "USD",
+    currency,
     maximumFractionDigits: 2,
   });
 }
 
 function formatNumber(value) {
   const num = Number(value) || 0;
+
   return num.toLocaleString(undefined, {
     maximumFractionDigits: 2,
   });
 }
 
+async function fetchCurrentPrice(ticker) {
+  try {
+    const res = await fetch(
+      `/api/market/quote?symbol=${encodeURIComponent(ticker)}`,
+      { cache: "no-store" }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return {
+        error: true,
+        message: "Invalid ticker or price unavailable",
+      };
+    }
+
+    return {
+      price: Number(data.price),
+      currency: data.currency || "USD",
+      provider: data.provider || "Yahoo Finance",
+    };
+  } catch (error) {
+    return {
+      error: true,
+      message: "Invalid ticker or price unavailable",
+    };
+  }
+}
+
+function calculateSummary(positions) {
+  const totalInvested = positions.reduce(
+    (sum, position) => sum + position.totalCost,
+    0
+  );
+
+  const netPortfolioValue = positions.reduce((sum, position) => {
+    if (position.finalValue === null) {
+      return sum + position.totalCost;
+    }
+
+    return sum + position.finalValue;
+  }, 0);
+
+  const totalReturns = netPortfolioValue - totalInvested;
+
+  const returnPercentage =
+    totalInvested > 0 ? (totalReturns / totalInvested) * 100 : 0;
+
+  return {
+    totalInvested,
+    netPortfolioValue,
+    totalReturns,
+    returnPercentage,
+  };
+}
+
 export default function SummaryCards({ userId }) {
-  const [portfolio, setPortfolio] = useState(null);
+  const [holdings, setHoldings] = useState([]);
+  const [marketData, setMarketData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchPortfolio = async () => {
+    async function fetchPortfolio() {
+      if (!userId) return;
+
       try {
         setLoading(true);
         setError("");
 
-        const res = await fetch(
-          `/api/transactions?user_id=${encodeURIComponent(userId)}`
-        );
-        const data = await res.json();
+        const holdingsRes = await fetch(`${API_BASE_URL}/api/holdings/${userId}`);
+        const holdingsData = await holdingsRes.json();
 
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to load portfolio data");
+        if (!holdingsRes.ok) {
+          throw new Error(holdingsData.error || "Failed to load holdings");
         }
 
-        const transactions = Array.isArray(data.transactions)
-          ? data.transactions
+        const fetchedHoldings = Array.isArray(holdingsData.holdings)
+          ? holdingsData.holdings
           : [];
 
-        const result = calculatePortfolio(transactions);
-        setPortfolio(result);
+        setHoldings(fetchedHoldings);
+
+        if (fetchedHoldings.length === 0) {
+          setMarketData({ stockPrices: {} });
+          return;
+        }
+
+        const tickers = [
+          ...new Set(fetchedHoldings.map((holding) => holding.ticker)),
+        ];
+
+        const quoteEntries = await Promise.all(
+          tickers.map(async (ticker) => {
+            const quote = await fetchCurrentPrice(ticker);
+            return [ticker, quote];
+          })
+        );
+
+        const stockPrices = Object.fromEntries(quoteEntries);
+
+        setMarketData({ stockPrices });
       } catch (err) {
+        console.error("Portfolio summary error:", err);
         setError(err.message || "Something went wrong");
       } finally {
         setLoading(false);
       }
-    };
+    }
 
-    if (userId) fetchPortfolio();
+    fetchPortfolio();
   }, [userId]);
 
-  const positions = portfolio?.positions || [];
-  const totalCapitalInvested = portfolio?.totals?.totalCapitalInvested || 0;
+  const positionsWithPrices = holdings.map((holding) => {
+    const quote = marketData?.stockPrices?.[holding.ticker];
 
-  const totalInvested = positions.reduce(
-    (sum, p) => sum + (Number(p.investedCapital) || 0),
-    0
-  );
+    const quantity = Number(holding.quantity) || 0;
+    const avgPrice = Number(holding.avgPrice) || 0;
 
-  // Placeholder until live pricing is connected
-  const netPortfolioValue = totalInvested;
-  const totalReturns = netPortfolioValue - totalInvested;
+    const currentPrice =
+      quote && !quote.error && quote.price !== undefined
+        ? Number(quote.price)
+        : null;
 
-  const returnPercentage =
-  totalInvested > 0
-    ? (totalReturns / totalInvested) * 100
-    : 0;
-  
-    if (loading) {
+    const currency = quote?.currency || "USD";
+
+    const totalCost = quantity * avgPrice;
+    const finalValue = currentPrice !== null ? quantity * currentPrice : null;
+    const returns = finalValue !== null ? finalValue - totalCost : null;
+
+    const returnPercentage =
+      returns !== null && totalCost > 0 ? (returns / totalCost) * 100 : null;
+
+    return {
+      ticker: holding.ticker,
+      quantity,
+      avgPrice,
+      totalCost,
+      currentPrice,
+      finalValue,
+      returns,
+      returnPercentage,
+      currency,
+      priceError: quote?.error ? quote.message : "",
+    };
+  });
+
+  const positionsByCurrency = positionsWithPrices.reduce((groups, position) => {
+    const currency = position.currency || "USD";
+
+    if (!groups[currency]) {
+      groups[currency] = [];
+    }
+
+    groups[currency].push(position);
+    return groups;
+  }, {});
+
+  const currencyOrder = Object.keys(positionsByCurrency).sort((a, b) => {
+    const order = ["USD", "SGD"];
+    const aIndex = order.indexOf(a);
+    const bIndex = order.indexOf(b);
+
+    if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+
+    return aIndex - bIndex;
+  });
+
+  if (loading) {
     return <p className="subtitle">Loading portfolio summary...</p>;
   }
 
@@ -84,68 +204,129 @@ export default function SummaryCards({ userId }) {
     <div className="holdingsSection">
       <h2 className="holdingsTitle">Your Holdings</h2>
 
-      {positions.filter((p) => p.sharesOwned > 0).length === 0 ? (
+      {positionsWithPrices.length === 0 ? (
         <p className="subtitle">No holdings yet.</p>
       ) : (
-        <div className="tableWrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Ticker</th>
-                <th>Shares Owned</th>
-                <th>Avg Cost</th>
-                <th>Total Cost</th>
-                <th>Current Price</th>
-                <th>Final Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {positions
-                .filter((p) => p.sharesOwned > 0)
-                .map((position) => {
-                  const currentPrice = null; // live price API comes later
-                  const finalValue =
-                    currentPrice != null
-                      ? position.sharesOwned * currentPrice
-                      : null;
+        <>
+          {currencyOrder.map((currency) => {
+            const positions = positionsByCurrency[currency];
+            const summary = calculateSummary(positions);
 
-                  return (
-                    <tr key={position.ticker}>
-                      <td style={{ fontWeight: 700 }}>{position.ticker}</td>
-                      <td>{formatNumber(position.sharesOwned)}</td>
-                      <td>{formatMoney(position.averageCost)}</td>
-                      <td>{formatMoney(position.investedCapital)}</td>
-                      <td>{currentPrice == null ? "—" : formatMoney(currentPrice)}</td>
-                      <td>{finalValue == null ? "—" : formatMoney(finalValue)}</td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
-
-          <div className="portfolioFooter">
-            <span>
-              <strong>Total Invested:</strong> {formatMoney(totalInvested)}
-            </span>
-
-            <span>
-              <strong>Net Portfolio Value:</strong>{" "}
-              {formatMoney(netPortfolioValue)}
-            </span>
-
-            <span>
-              <strong>Total Returns:</strong>{" "}
-              <span
-                style={{
-                  color: totalReturns >= 0 ? "#16a34a" : "#dc2626",
-                }}
+            return (
+              <div
+                className="tableWrap"
+                key={currency}
+                style={{ marginBottom: "32px" }}
               >
-                {formatMoney(totalReturns)} ({returnPercentage.toFixed(2)}%)
-              </span>
-            </span>
+                <h3 style={{ margin: "20px 0 12px 16px" }}>
+                  {currency} Holdings
+                </h3>
 
-          </div>
-        </div>
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Ticker</th>
+                      <th>Shares Owned</th>
+                      <th>Avg Cost</th>
+                      <th>Total Cost</th>
+                      <th>Current Price</th>
+                      <th>Final Value</th>
+                      <th>Returns</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {positions.map((position) => (
+                      <tr key={position.ticker}>
+                        <td style={{ fontWeight: 700 }}>{position.ticker}</td>
+
+                        <td>{formatNumber(position.quantity)}</td>
+
+                        <td>
+                          {formatMoney(position.avgPrice, position.currency)}
+                        </td>
+
+                        <td>
+                          {formatMoney(position.totalCost, position.currency)}
+                        </td>
+
+                        <td>
+                          {position.currentPrice === null ? (
+                            <span style={{ color: "#dc2626" }}>
+                              Price unavailable
+                            </span>
+                          ) : (
+                            formatMoney(
+                              position.currentPrice,
+                              position.currency
+                            )
+                          )}
+                        </td>
+
+                        <td>
+                          {position.finalValue === null
+                            ? "—"
+                            : formatMoney(
+                                position.finalValue,
+                                position.currency
+                              )}
+                        </td>
+
+                        <td>
+                          {position.returns === null ? (
+                            <span style={{ color: "#dc2626" }}>
+                              {position.priceError || "—"}
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                color:
+                                  position.returns >= 0
+                                    ? "#16a34a"
+                                    : "#dc2626",
+                              }}
+                            >
+                              {formatMoney(
+                                position.returns,
+                                position.currency
+                              )}{" "}
+                              ({position.returnPercentage.toFixed(2)}%)
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                <div className="portfolioFooter">
+                  <span>
+                    <strong>Total Invested:</strong>{" "}
+                    {formatMoney(summary.totalInvested, currency)}
+                  </span>
+
+                  <span>
+                    <strong>Net Portfolio Value:</strong>{" "}
+                    {formatMoney(summary.netPortfolioValue, currency)}
+                  </span>
+
+                  <span>
+                    <strong>Total Returns:</strong>{" "}
+                    <span
+                      style={{
+                        color:
+                          summary.totalReturns >= 0 ? "#16a34a" : "#dc2626",
+                      }}
+                    >
+                      {formatMoney(summary.totalReturns, currency)}{" "}
+                      ({summary.returnPercentage.toFixed(2)}%)
+                    </span>
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </>
       )}
     </div>
   );
