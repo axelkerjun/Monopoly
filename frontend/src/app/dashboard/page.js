@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import CSVuploader from "@/components/CSVuploader";
 import SummaryCards from "@/components/SummaryCards";
 import Navbar from "@/components/Navbar";
+import PortfolioTimeline from "@/components/PortfolioTimeline";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -49,6 +50,7 @@ export default function DashboardPage() {
           </div>
         )}
 
+        <PortfolioTimeline userId={loggedInUser.id} />
         <SummaryCards userId={loggedInUser.id} />
 
         <CSVuploader
