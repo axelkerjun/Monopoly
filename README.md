@@ -79,27 +79,80 @@ https://monopoly-theta-seven.vercel.app/
 
 ```txt
 Monopoly
+├── backend
+│   ├── package-lock.json
+│   ├── package.json
+│   └── server.js
+│
 ├── frontend
+│   ├── public
+│   │
 │   ├── src
 │   │   ├── app
 │   │   │   ├── api
 │   │   │   │   ├── auth
-│   │   │   │   ├── transactions
+│   │   │   │   │   ├── login
+│   │   │   │   │   │   └── route.js
+│   │   │   │   │   └── register
+│   │   │   │   │       └── route.js
+│   │   │   │   │
+│   │   │   │   ├── health
+│   │   │   │   │   └── route.js
+│   │   │   │   │
 │   │   │   │   ├── holdings
+│   │   │   │   │   └── [userId]
+│   │   │   │   │       └── route.js
+│   │   │   │   │
 │   │   │   │   ├── market
-│   │   │   │   └── portfolio
+│   │   │   │   │   ├── history
+│   │   │   │   │   │   └── route.js
+│   │   │   │   │   ├── quote
+│   │   │   │   │   │   └── route.js
+│   │   │   │   │   └── search
+│   │   │   │   │       └── route.js
+│   │   │   │   │
+│   │   │   │   ├── portfolio
+│   │   │   │   │   └── timeline
+│   │   │   │   │       └── [userId]
+│   │   │   │   │           └── route.js
+│   │   │   │   │
+│   │   │   │   └── transactions
+│   │   │   │       ├── [id]
+│   │   │   │       │   └── route.js
+│   │   │   │       └── route.js
+│   │   │   │
+│   │   │   ├── buy-sell
+│   │   │   │   └── page.js
+│   │   │   │
 │   │   │   ├── dashboard
+│   │   │   │   └── page.js
+│   │   │   │
+│   │   │   ├── transactions
+│   │   │   │   └── page.js
+│   │   │   │
+│   │   │   ├── favicon.ico
+│   │   │   ├── globals.css
+│   │   │   ├── layout.js
 │   │   │   └── page.js
-│   │   ├── components
-│   │   │   ├── CSVuploader.js
-│   │   │   ├── Navbar.js
-│   │   │   ├── PortfolioTimeline.js
-│   │   │   ├── SummaryCards.js
-│   │   │   └── TickerAutocomplete.js
-│   │   └── lib
-│   ├── package.json
-│   └── .env.local
-└── README.md
+│   │   │
+│   │   └── components
+│   │       ├── BuySellForm.js
+│   │       ├── CSVuploader.js
+│   │       ├── Navbar.js
+│   │       ├── PortfolioTimeline.js
+│   │       ├── SummaryCards.js
+│   │       ├── TickerAutocomplete.js
+│   │       └── TransactionsTable.js
+│   │
+│   ├── .gitignore
+│   ├── eslint.config.mjs
+│   ├── jsconfig.json
+│   ├── package-lock.json
+│   └── package.json
+│
+├── .gitignore
+├── README.md
+└── package-lock.json
 ```
 
 ## Implemented Features and Implementation Details
