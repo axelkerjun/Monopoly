@@ -259,6 +259,12 @@ This is useful because the application supports assets from different markets, i
 
 The application fetches market data for each ticker using Yahoo Finance. Each quote includes currency information, such as USD or SGD. The frontend groups holdings based on the returned currency and displays separate portfolio sections for each currency.
 
+The dashboard also periodically refetches market prices from the market data API so that portfolio values and returns can update without requiring the user to manually refresh the page.
+
+This was implemented using a timed refresh interval in the frontend. The React component calls the holdings and quote API routes at regular intervals, updates the latest market prices, and recalculates portfolio value and returns.
+
+For normal use, the refresh interval can be set to a larger value such as 30 seconds to reduce unnecessary API calls and avoid rate limits. A shorter interval, such as 1 second, can be used for local testing or demonstration purposes.
+
 ### 7. Yahoo Finance Market Data Integration
 
 The application integrates Yahoo Finance using the `yahoo-finance2` package.
@@ -563,7 +569,6 @@ The project uses GitHub and Vercel so that changes pushed to the repository can 
 * Risk and volatility analytics
 * Stock correlation analysis for hedging
 * More advanced portfolio performance metrics
-* Automatic live price refresh without manual page reload
 * Export portfolio report as CSV
 * Improved session management
 
