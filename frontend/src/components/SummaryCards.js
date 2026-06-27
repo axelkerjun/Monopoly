@@ -83,14 +83,23 @@ export default function SummaryCards({ userId }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!userId) return;
+
+    let intervalId;
+    let isMounted = true;
+    let isFetching = false;
+
     async function fetchPortfolio() {
-      if (!userId) return;
+      if (isFetching) return;
 
       try {
-        setLoading(true);
+        isFetching = true;
         setError("");
 
-        const holdingsRes = await fetch(`/api/holdings/${userId}`);
+        const holdingsRes = await fetch(`/api/holdings/${userId}`, {
+          cache: "no-store",
+        });
+
         const holdingsData = await holdingsRes.json();
 
         if (!holdingsRes.ok) {
@@ -101,6 +110,7 @@ export default function SummaryCards({ userId }) {
           ? holdingsData.holdings
           : [];
 
+        if (!isMounted) return;
         setHoldings(fetchedHoldings);
 
         if (fetchedHoldings.length === 0) {
@@ -119,18 +129,32 @@ export default function SummaryCards({ userId }) {
           })
         );
 
-        const stockPrices = Object.fromEntries(quoteEntries);
+        if (!isMounted) return;
 
-        setMarketData({ stockPrices });
+        setMarketData({
+          stockPrices: Object.fromEntries(quoteEntries),
+        });
       } catch (err) {
-        console.error("Portfolio summary error:", err);
-        setError(err.message || "Something went wrong");
+        if (isMounted) {
+          setError(err.message || "Something went wrong");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
+
+        isFetching = false;
       }
     }
 
     fetchPortfolio();
+
+    intervalId = setInterval(fetchPortfolio, 30000); //set to 30s refresh rate
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
   }, [userId]);
 
   const positionsWithPrices = holdings.map((holding) => {
