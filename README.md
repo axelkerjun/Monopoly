@@ -570,9 +570,11 @@ Transaction forms and CSV uploads validate required fields such as ticker, type,
 ### CI/CD
 The project uses GitHub and Vercel so that changes pushed to the repository can be automatically built and deployed.
 
-### Client-Side File Generation The holdings CSV export is generated on the client side using JavaScript. The application converts the current holdings data into CSV format and creates a downloadable file in the browser. This avoids the need for an additional backend export route.
+### Client-Side File Generation 
+The holdings CSV export is generated on the client side using JavaScript. The application converts the current holdings data into CSV format and creates a downloadable file in the browser. This avoids the need for an additional backend export route.
 
-### Feature Modularity The watchlist feature is separated into its own page, component, API routes, and database table. This keeps the feature easier to maintain and prevents the dashboard code from becoming too crowded.
+### Feature Modularity
+The watchlist feature is separated into its own page, component, API routes, and database table. This keeps the feature easier to maintain and prevents the dashboard code from becoming too crowded.
 
 ## API Routes
 
