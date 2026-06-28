@@ -200,16 +200,23 @@ export default function Watchlist({ userId }) {
             .sort()
             .map((currency) => (
               <div key={currency} style={{ marginTop: "24px" }}>
-                <h3 style={{ marginBottom: "12px" }}>
-                  {currency} Watchlist
-                </h3>
+                <h3 style={{ marginBottom: "12px" }}>{currency} Watchlist</h3>
 
-                <table className="table">
+                <table
+                  className="table"
+                  style={{ tableLayout: "fixed", width: "100%" }}
+                >
+                  <colgroup>
+                    <col style={{ width: "45%" }} />
+                    <col style={{ width: "30%" }} />
+                    <col style={{ width: "25%" }} />
+                  </colgroup>
+
                   <thead>
                     <tr>
-                      <th>Ticker</th>
-                      <th>Current Price</th>
-                      <th>Action</th>
+                      <th style={{ textAlign: "left" }}>Ticker</th>
+                      <th style={{ textAlign: "center" }}>Current Price</th>
+                      <th style={{ textAlign: "center" }}>Action</th>
                     </tr>
                   </thead>
 
@@ -219,15 +226,17 @@ export default function Watchlist({ userId }) {
 
                       return (
                         <tr key={item.id}>
-                          <td style={{ fontWeight: 700 }}>{item.ticker}</td>
+                          <td style={{ fontWeight: 700, wordBreak: "break-word" }}>
+                            {item.ticker}
+                          </td>
 
-                          <td>
+                          <td style={{ textAlign: "center" }}>
                             {quote?.error
                               ? "Price unavailable"
                               : formatMoney(quote?.price, quote?.currency)}
                           </td>
 
-                          <td>
+                          <td style={{ textAlign: "center" }}>
                             <button
                               className="linkButton"
                               type="button"

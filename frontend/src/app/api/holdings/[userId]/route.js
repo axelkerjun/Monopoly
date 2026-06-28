@@ -18,20 +18,20 @@ export async function GET(request, { params }) {
         ticker,
         SUM(
           CASE
-            WHEN type = 'BUY' THEN quantity
-            WHEN type = 'SELL' THEN -quantity
+            WHEN UPPER(TRIM(type)) = 'BUY' THEN quantity
+            WHEN UPPER(TRIM(type)) = 'SELL' THEN -quantity
             ELSE 0
           END
         ) AS quantity,
         SUM(
           CASE
-            WHEN type = 'BUY' THEN quantity * price
+            WHEN UPPER(TRIM(type)) = 'BUY' THEN quantity * price
             ELSE 0
           END
         ) AS total_buy_cost,
         SUM(
           CASE
-            WHEN type = 'BUY' THEN quantity
+            WHEN UPPER(TRIM(type)) = 'BUY' THEN quantity
             ELSE 0
           END
         ) AS total_buy_quantity
@@ -40,8 +40,8 @@ export async function GET(request, { params }) {
       GROUP BY ticker
       HAVING SUM(
         CASE
-          WHEN type = 'BUY' THEN quantity
-          WHEN type = 'SELL' THEN -quantity
+          WHEN UPPER(TRIM(type)) = 'BUY' THEN quantity
+          WHEN UPPER(TRIM(type)) = 'SELL' THEN -quantity
           ELSE 0
         END
       ) > 0

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function formatMoney(value, currency = "USD") {
   const num = Number(value) || 0;
@@ -81,6 +81,8 @@ export default function SummaryCards({ userId }) {
   const [marketData, setMarketData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const previousPricesRef = useRef({});
+  const [priceFlash, setPriceFlash] = useState({});
 
   useEffect(() => {
     if (!userId) return;
@@ -131,9 +133,33 @@ export default function SummaryCards({ userId }) {
 
         if (!isMounted) return;
 
-        setMarketData({
-          stockPrices: Object.fromEntries(quoteEntries),
+        const newPrices = Object.fromEntries(quoteEntries);
+        const flashUpdates = {};
+
+        quoteEntries.forEach(([ticker, quote]) => {
+          if (!quote || quote.error) return;
+
+          const newPrice = Number(quote.price);
+          const oldPrice = previousPricesRef.current[ticker];
+
+          if (oldPrice !== undefined && newPrice !== oldPrice) {
+            flashUpdates[ticker] = newPrice > oldPrice ? "up" : "down";
+          }
+
+          previousPricesRef.current[ticker] = newPrice;
         });
+
+        setMarketData({
+          stockPrices: newPrices,
+        });
+
+        if (Object.keys(flashUpdates).length > 0) {
+          setPriceFlash(flashUpdates);
+
+          setTimeout(() => {
+            setPriceFlash({});
+          }, 1500);
+        }
       } catch (err) {
         if (isMounted) {
           setError(err.message || "Something went wrong");
@@ -149,7 +175,7 @@ export default function SummaryCards({ userId }) {
 
     fetchPortfolio();
 
-    intervalId = setInterval(fetchPortfolio, 30000); //set to 30s refresh rate
+    intervalId = setInterval(fetchPortfolio, 5000); //set to 5s refresh rate
 
     return () => {
       isMounted = false;
@@ -313,16 +339,23 @@ export default function SummaryCards({ userId }) {
                           {formatMoney(position.totalCost, position.currency)}
                         </td>
 
-                        <td>
+                        <td
+                          style={{
+                            backgroundColor:
+                              priceFlash[position.ticker] === "up"
+                                ? "#dcfce7"
+                                : priceFlash[position.ticker] === "down"
+                                  ? "#fee2e2"
+                                  : "transparent",
+                            transition: "background-color 0.4s ease",
+                          }}
+                        >
                           {position.currentPrice === null ? (
                             <span style={{ color: "#dc2626" }}>
                               Price unavailable
                             </span>
                           ) : (
-                            formatMoney(
-                              position.currentPrice,
-                              position.currency
-                            )
+                            formatMoney(position.currentPrice, position.currency)
                           )}
                         </td>
 
