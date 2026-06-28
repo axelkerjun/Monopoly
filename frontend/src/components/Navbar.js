@@ -28,6 +28,12 @@ export default function Navbar() {
         Transactions
       </button>
 
+      <button
+        className="navButton"
+        onClick={() => router.push("/watchlist")}
+      >
+        Watchlist
+      </button>
     </div>
   );
 }
