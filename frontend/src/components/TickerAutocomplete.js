@@ -58,7 +58,7 @@ export default function TickerAutocomplete({ value, onChange }) {
   function handleInputChange(event) {
     const newValue = event.target.value.toUpperCase();
     setQuery(newValue);
-    onChange("");
+    onChange(newValue);
     setIsOpen(true);
   }
 
@@ -80,7 +80,7 @@ export default function TickerAutocomplete({ value, onChange }) {
         required
       />
 
-      {isOpen && query.trim() && (
+      {isOpen && query.trim() && results.length > 0 && (
         <div
           style={{
             position: "absolute",
@@ -96,35 +96,29 @@ export default function TickerAutocomplete({ value, onChange }) {
             overflowY: "auto",
           }}
         >
-          {results.length === 0 ? (
-            <div style={{ padding: "12px", color: "#6b7280" }}>
-              No matching tickers found.
-            </div>
-          ) : (
-            results.map((result) => (
-              <button
-                key={`${result.symbol}-${result.exchange}`}
-                type="button"
-                onClick={() => handleSelect(result)}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "12px",
-                  border: "none",
-                  background: "white",
-                  cursor: "pointer",
-                  borderBottom: "1px solid #f3f4f6",
-                }}
-              >
-                <strong>{result.tradeSymbol}</strong>{" "}
-                <span style={{ color: "#6b7280" }}>{result.exchange}</span>
+          {results.map((result) => (
+            <button
+              key={`${result.symbol}-${result.exchange}`}
+              type="button"
+              onClick={() => handleSelect(result)}
+              style={{
+                width: "100%",
+                textAlign: "left",
+                padding: "12px",
+                border: "none",
+                background: "white",
+                cursor: "pointer",
+                borderBottom: "1px solid #f3f4f6",
+              }}
+            >
+              <strong>{result.tradeSymbol}</strong>{" "}
+              <span style={{ color: "#6b7280" }}>{result.exchange}</span>
 
-                <div style={{ fontSize: "13px", color: "#4b5563" }}>
-                  {result.name}
-                </div>
-              </button>
-            ))
-          )}
+              <div style={{ fontSize: "13px", color: "#4b5563" }}>
+                {result.name}
+              </div>
+            </button>
+          ))}
         </div>
       )}
     </div>
