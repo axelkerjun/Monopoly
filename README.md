@@ -6,7 +6,7 @@ Deployed site: https://monopoly-theta-seven.vercel.app/
 
 You can use the following test account to explore the application without creating a new account:
 
-* Email: [tester@gmail.com](mailto:test@example.com)
+* Email: tester@gmail.com
 * Password: tester
 
 ## Overview
@@ -34,9 +34,11 @@ https://monopoly-theta-seven.vercel.app/
 * User-specific dashboard
 * Buy and sell transaction recording
 * CSV transaction upload
+* Holdings CSV export
 * Transaction editing and deletion
 * Portfolio holdings calculation
 * Currency-based holdings display
+* Watchlist page
 * Yahoo Finance market data integration
 * Ticker autocomplete
 * Portfolio value timeline chart
@@ -116,7 +118,12 @@ Monopoly
 │   │   │   │   │       └── [userId]
 │   │   │   │   │           └── route.js
 │   │   │   │   │
-│   │   │   │   └── transactions
+│   │   │   │   ├── transactions
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   └── route.js
+│   │   │   │   │   └── route.js
+│   │   │   │   │
+│   │   │   │   └── watchlist
 │   │   │   │       ├── [id]
 │   │   │   │       │   └── route.js
 │   │   │   │       └── route.js
@@ -141,6 +148,7 @@ Monopoly
 │   │       ├── Navbar.js
 │   │       ├── PortfolioTimeline.js
 │   │       ├── SummaryCards.js
+│   │       ├── Watchlist.js
 │   │       ├── TickerAutocomplete.js
 │   │       └── TransactionsTable.js
 │   │
@@ -238,7 +246,21 @@ Notes:
 
 CSV upload was implemented using the `papaparse` package. The frontend reads the uploaded CSV file, parses each row into transaction data, validates the required fields, and sends each valid transaction to the transaction API route for database insertion.
 
-### 5. Holdings Calculation
+### 5. Holdings CSV Export 
+The application allows users to export their current holdings as a CSV file. 
+The exported file includes useful portfolio information such as: 
+* Ticker
+* Quantity
+* Average cost
+* Current price
+* Final value
+* Currency
+* Returns
+* Return percentage
+This feature allows users to download a simple portfolio report from the dashboard. The export is generated directly in the browser using the current holdings data shown on the page, so no additional backend route is required.
+This export is designed as a holdings report rather than a transaction import file because it includes calculated values such as current market price, final value, and returns.
+
+### 6. Holdings Calculation
 
 The application calculates holdings from the user's transaction history.
 
@@ -251,7 +273,7 @@ For example:
 
 Holdings are calculated using a Next.js API route that queries the `transactions` table. SQL aggregation is used to group transactions by ticker. `BUY` quantities are added, while `SELL` quantities are subtracted. The average cost is calculated from buy transactions, and tickers with zero or negative remaining quantity are excluded from the holdings display.
 
-### 6. Currency-Based Portfolio Display
+### 7. Currency-Based Portfolio Display
 
 The dashboard groups holdings by currency, such as USD and SGD.
 
@@ -265,7 +287,7 @@ This was implemented using a timed refresh interval in the frontend. The React c
 
 For normal use, the refresh interval can be set to a larger value such as 30 seconds to reduce unnecessary API calls and avoid rate limits. A shorter interval, such as 1 second, can be used for local testing or demonstration purposes.
 
-### 7. Yahoo Finance Market Data Integration
+### 8. Yahoo Finance Market Data Integration
 
 The application integrates Yahoo Finance using the `yahoo-finance2` package.
 
@@ -281,7 +303,7 @@ Market data is handled through Next.js API routes that use the `yahoo-finance2` 
 
 Ticker symbols are normalized before being sent to Yahoo Finance. For example, `D05:SGX` is converted to the Yahoo-compatible symbol `D05.SI`.
 
-### 8. Ticker Autocomplete
+### 9. Ticker Autocomplete
 
 The transaction form includes a ticker autocomplete feature.
 
@@ -296,7 +318,16 @@ Supported asset examples include:
 
 The autocomplete input checks the user's search query and sends it to a ticker search API route. This API route uses Yahoo Finance search results and returns matching assets. The frontend displays these results in a dropdown, and selecting one fills the transaction ticker field.
 
-### 9. Portfolio Timeline Chart
+### 10. Watchlist 
+The application includes a watchlist page that allows users to track tickers without adding them as portfolio holdings. 
+
+Users can add and remove tickers from their watchlist. Each watchlist item is linked to the logged-in user and stored in the Neon PostgreSQL database. 
+
+The watchlist also fetches current market prices using the Yahoo Finance quote API. Saved tickers are grouped by currency, such as USD and SGD, so users can easily monitor assets from different markets.
+
+This feature is useful for tracking stocks, ETFs, Singapore-listed stocks, and cryptocurrencies before deciding whether to add them to the main portfolio.
+
+### 11. Portfolio Timeline Chart
 
 The application includes a portfolio timeline chart built using Chart.js.
 
@@ -310,7 +341,7 @@ This feature helps users visualize portfolio growth, losses, and performance tre
 
 The timeline chart uses a Next.js API route that retrieves the user's transactions and fetches historical prices for each ticker. The route simulates the user's holdings over time by applying `BUY` and `SELL` transactions in date order. It then calculates the portfolio value for each date and returns the data to the frontend. The `PortfolioTimeline` React component uses Chart.js and `react-chartjs-2` to display the data as a line chart.
 
-### 10. Neon PostgreSQL Database Integration
+### 12. Neon PostgreSQL Database Integration
 
 The application uses Neon PostgreSQL as its cloud-hosted database.
 
@@ -319,13 +350,14 @@ The database stores:
 * User account information
 * Hashed passwords
 * Transaction records
+* Watchlist records
 * Data required to calculate holdings and portfolio performance
 
 Using Neon allows the application to store persistent data even after the app is redeployed.
 
 The application connects to Neon PostgreSQL using the `pg` package. The database connection string is stored in environment variables as `DATABASE_URL`. API routes create database queries through a PostgreSQL connection pool, allowing the app to read and write user and transaction data.
 
-### 11. Next.js API Routes
+### 13. Next.js API Routes
 
 The backend logic is implemented using Next.js API routes.
 
@@ -339,7 +371,7 @@ Implemented API routes include:
 
 The frontend calls these routes using relative paths such as `/api/auth/login` and `/api/transactions`, which work both locally and on Vercel.
 
-### 12. Vercel Deployment
+### 14. Vercel Deployment
 
 The application is deployed on Vercel.
 
@@ -376,6 +408,15 @@ The project was connected to Vercel through GitHub. The `frontend` folder is use
 | price            | NUMERIC     | Transaction price per share or unit          |
 | transaction_date | DATE        | Date of transaction                          |
 | created_at       | TIMESTAMP   | Record creation timestamp                    |
+
+### Watchlist Table
+
+| Column     | Type         | Description                                     |
+| ---------- | ------------ | ----------------------------------------------- |
+| id         | SERIAL       | Primary key                                     |
+| user_id    | INTEGER      | References the user who owns the watchlist item |
+| ticker     | TEXT         | Stock, ETF, SGX, or crypto ticker               |
+| created_at | TIMESTAMP    | Record creation timestamp                       |
 
 ## Installation Requirements
 
@@ -444,6 +485,7 @@ Required tables:
 
 * `users`
 * `transactions`
+* `watchlist`
 
 ### 5. Run the Development Server
 
@@ -528,21 +570,28 @@ Transaction forms and CSV uploads validate required fields such as ticker, type,
 ### CI/CD
 The project uses GitHub and Vercel so that changes pushed to the repository can be automatically built and deployed.
 
+### Client-Side File Generation The holdings CSV export is generated on the client side using JavaScript. The application converts the current holdings data into CSV format and creates a downloadable file in the browser. This avoids the need for an additional backend export route.
+
+### Feature Modularity The watchlist feature is separated into its own page, component, API routes, and database table. This keeps the feature easier to maintain and prevents the dashboard code from becoming too crowded.
+
 ## API Routes
 
 | Route | Method | Purpose |
 |---|---|---|
-| `/api/auth/register` | POST | Registers a new user |
-| `/api/auth/login` | POST | Authenticates an existing user |
-| `/api/transactions` | GET | Retrieves user transactions |
-| `/api/transactions` | POST | Saves a new transaction |
-| `/api/transactions/[id]` | PATCH | Updates an existing transaction |
-| `/api/transactions/[id]` | DELETE | Deletes a transaction |
-| `/api/holdings/[userId]` | GET | Calculates current holdings |
-| `/api/market/quote` | GET | Fetches current market price |
-| `/api/market/history` | GET | Fetches historical price data |
-| `/api/market/search` | GET | Searches tickers for autocomplete |
+| `/api/auth/register`               | POST | Registers a new user |
+| `/api/auth/login`                  | POST | Authenticates an existing user |
+| `/api/transactions`                | GET | Retrieves user transactions |
+| `/api/transactions`                | POST | Saves a new transaction |
+| `/api/transactions/[id]`           | PATCH | Updates an existing transaction |
+| `/api/transactions/[id]`           | DELETE | Deletes a transaction |
+| `/api/holdings/[userId]`           | GET | Calculates current holdings |
+| `/api/market/quote`                | GET | Fetches current market price |
+| `/api/market/history`              | GET | Fetches historical price data |
+| `/api/market/search`               | GET | Searches tickers for autocomplete |
 | `/api/portfolio/timeline/[userId]` | GET | Generates portfolio timeline data |
+| `/api/watchlist`                   | GET | Retrieves the logged-in user's watchlist |
+| `/api/watchlist`                   | POST | Adds a ticker to the user's watchlist |
+| `/api/watchlist/[id]`              | DELETE | Removes a ticker from the user's watchlist |
 
 ## Feature Evidence
 
@@ -555,6 +604,8 @@ The project uses GitHub and Vercel so that changes pushed to the repository can 
 | Ticker Autocomplete | `src/components/TickerAutocomplete.js` |
 | Portfolio Timeline | `src/components/PortfolioTimeline.js`, `src/app/api/portfolio/timeline/[userId]/route.js` |
 | CSV Upload | `src/components/CSVuploader.js` |
+| Watchlist | `src/components/Watchlist.js`, `src/app/watchlist/page.js`, `src/app/api/watchlist/route.js` |
+| Holdings CSV Export | `src/components/SummaryCards.js` |
 
 ## Limitations
 
@@ -563,16 +614,15 @@ The project uses GitHub and Vercel so that changes pushed to the repository can 
 * Portfolio values are grouped by currency and are not automatically converted into one base currency.
 
 ## Future Enhancements
-
-* Watchlist functionality
 * Transaction history filtering
 * Risk and volatility analytics
 * Stock correlation analysis for hedging
 * More advanced portfolio performance metrics
-* Export portfolio report as CSV
 * Improved session management
 
 ## Summary
 
-Monopoly is a portfolio tracking application that combines software engineering and quantitative finance concepts. It allows users to manage transactions, calculate holdings, fetch market prices, and visualize portfolio performance over time.
+## Summary 
+
+Monopoly is a portfolio tracking application that combines software engineering and quantitative finance concepts. It allows users to manage transactions, calculate holdings, fetch market prices, monitor watchlist tickers, export portfolio reports and visualize portfolio performance over time.
 
