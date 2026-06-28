@@ -214,6 +214,35 @@ export default function SummaryCards({ userId }) {
     return aIndex - bIndex;
   });
 
+function exportCSV() {
+  if (positionsWithPrices.length === 0) {
+    setError("No holdings to export.");
+    return;
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const csvRows = [
+    ["ticker", "type", "quantity", "price", "transaction_date"],
+    ...positionsWithPrices.map((position) => [
+      position.ticker,
+      "BUY",
+      position.quantity,
+      position.avgPrice,
+      today,
+    ]),
+  ];
+
+  const csv = csvRows.map((row) => row.join(",")).join("\n");
+
+  const file = new Blob([csv], { type: "text/csv" });
+  const link = document.createElement("a");
+
+  link.href = URL.createObjectURL(file);
+  link.download = "myholdings.csv";
+  link.click();
+}
+
   if (loading) {
     return <p className="subtitle">Loading portfolio summary...</p>;
   }
@@ -289,9 +318,9 @@ export default function SummaryCards({ userId }) {
                           {position.finalValue === null
                             ? "—"
                             : formatMoney(
-                                position.finalValue,
-                                position.currency
-                              )}
+                              position.finalValue,
+                              position.currency
+                            )}
                         </td>
 
                         <td>
@@ -350,6 +379,11 @@ export default function SummaryCards({ userId }) {
           })}
         </>
       )}
+      <div style={{ marginTop: "20px", textAlign: "center" }}>
+        <button className="button" type="button" onClick={exportCSV}>
+          Export CSV
+        </button>
+      </div>
     </div>
   );
 }

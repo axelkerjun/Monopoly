@@ -44,15 +44,15 @@ export default function DashboardPage() {
 
         <hr className="hr" />
 
+        <PortfolioTimeline userId={loggedInUser.id} />
+        <SummaryCards userId={loggedInUser.id} />
+
         {tradeMessage && (
           <div className={`message ${isTradeError ? "error" : "success"}`}>
             {tradeMessage}
           </div>
         )}
-
-        <PortfolioTimeline userId={loggedInUser.id} />
-        <SummaryCards userId={loggedInUser.id} />
-
+        
         <CSVuploader
           userId={loggedInUser.id}
           setTradeMessage={setTradeMessage}

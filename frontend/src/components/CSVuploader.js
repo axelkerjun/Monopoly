@@ -10,7 +10,7 @@ export default function CSVuploader({ userId, setTradeMessage, setIsTradeError }
   const processFilePipeline = (file) => {
     if (!file) {
       setIsTradeError(true);
-      setTradeMessage("⚠️ No file detected. Please choose a valid CSV file.");
+      setTradeMessage("No file detected. Please choose a valid CSV file.");
       return;
     }
 
@@ -24,14 +24,14 @@ export default function CSVuploader({ userId, setTradeMessage, setIsTradeError }
       error: (parseError) => {
         console.error("PapaParse native error:", parseError);
         setIsTradeError(true);
-        setTradeMessage(`⚠️ File Reading Error: ${parseError.message}`);
+        setTradeMessage(`File Reading Error: ${parseError.message}`);
         setIsUploading(false);
       },
       complete: async (results) => {
         const parsedRows = results.data;
         if (!parsedRows || parsedRows.length === 0) {
           setIsTradeError(true);
-          setTradeMessage("⚠️ Upload failed: The uploaded file appears to be empty.");
+          setTradeMessage("Upload failed: The uploaded file appears to be empty.");
           setIsUploading(false);
           return;
         }
@@ -86,24 +86,24 @@ export default function CSVuploader({ userId, setTradeMessage, setIsTradeError }
               await new Promise(resolve => setTimeout(resolve, 80));
 
             } catch (rowError) {
-              console.error(`❌ DB error on row ${i + 1}:`, rowError.message);
+              console.error(`DB error on row ${i + 1}:`, rowError.message);
               setIsTradeError(true);
-              setTradeMessage(`⚠️ Error saving ${formattedTransaction.ticker}: ${rowError.message}`);
+              setTradeMessage(`Error saving ${formattedTransaction.ticker}: ${rowError.message}`);
             }
           }
 
           if (successCount > 0) {
             setIsTradeError(false);
-            setTradeMessage(`🎉 CSV Bulk Success! Loaded ${successCount} entries. Latest: ${lastLoggedMessage}`);
+            setTradeMessage(`CSV Bulk Success! Loaded ${successCount} entries. Latest: ${lastLoggedMessage}`);
           } else {
             setIsTradeError(true);
-            setTradeMessage("⚠️ Upload processed: No valid or new transactions could be synchronized.");
+            setTradeMessage("Upload processed: No valid or new transactions could be synchronized.");
           }
 
         } catch (pipelineFatalError) {
           console.error(pipelineFatalError);
           setIsTradeError(true);
-          setTradeMessage(`🚨 Critical upload error: ${pipelineFatalError.message}`);
+          setTradeMessage(`Critical upload error: ${pipelineFatalError.message}`);
         } finally {
           setIsUploading(false);
           setCurrentProgress("");
@@ -196,7 +196,7 @@ export default function CSVuploader({ userId, setTradeMessage, setIsTradeError }
           <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#777' }}>Supports standard .csv statement exports</p>
           
           <div style={{ fontSize: '11px', color: '#888', borderTop: '1px solid #eee', paddingTop: '10px', display: 'inline-block', width: '80%' }}>
-            <strong>Required Structure:</strong> <code>Contract Code</code>, <code>Action</code>, <code>Filled Qty</code>, <code>Avg Price</code>
+            <strong>Required Structure:</strong> <code>Contract Code</code>, <code>Action</code>, <code>Filled Qty</code>, <code>Avg Price</code>, <code>Date </code>
           </div>
         </div>
       )}
