@@ -622,8 +622,6 @@ The watchlist feature is separated into its own page, component, API routes, and
 * More advanced portfolio performance metrics
 * Improved session management
 
-## Summary
-
 ## Summary 
 
 Monopoly is a portfolio tracking application that combines software engineering and quantitative finance concepts. It allows users to manage transactions, calculate holdings, fetch market prices, monitor watchlist tickers, export portfolio reports and visualize portfolio performance over time.
