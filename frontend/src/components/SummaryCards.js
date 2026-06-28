@@ -214,34 +214,46 @@ export default function SummaryCards({ userId }) {
     return aIndex - bIndex;
   });
 
-function exportCSV() {
-  if (positionsWithPrices.length === 0) {
-    setError("No holdings to export.");
-    return;
+  function exportCSV() {
+    if (positionsWithPrices.length === 0) {
+      setError("No holdings to export.");
+      return;
+    }
+
+    const csvRows = [
+      [
+        "Ticker",
+        "Quantity",
+        "Avg Cost",
+        "Current Price",
+        "Final Value",
+        "Currency",
+        "Returns",
+        "Return %",
+      ],
+      ...positionsWithPrices.map((position) => [
+        position.ticker,
+        position.quantity,
+        position.avgPrice,
+        position.currentPrice || "N/A",
+        position.finalValue || "N/A",
+        position.currency,
+        position.returns || "N/A",
+        position.returnPercentage !== null
+          ? position.returnPercentage.toFixed(2) + "%"
+          : "N/A",
+      ]),
+    ];
+
+    const csv = csvRows.map((row) => row.join(",")).join("\n");
+
+    const file = new Blob([csv], { type: "text/csv" });
+    const link = document.createElement("a");
+
+    link.href = URL.createObjectURL(file);
+    link.download = "myholdings.csv";
+    link.click();
   }
-
-  const today = new Date().toISOString().split("T")[0];
-
-  const csvRows = [
-    ["ticker", "type", "quantity", "price", "transaction_date"],
-    ...positionsWithPrices.map((position) => [
-      position.ticker,
-      "BUY",
-      position.quantity,
-      position.avgPrice,
-      today,
-    ]),
-  ];
-
-  const csv = csvRows.map((row) => row.join(",")).join("\n");
-
-  const file = new Blob([csv], { type: "text/csv" });
-  const link = document.createElement("a");
-
-  link.href = URL.createObjectURL(file);
-  link.download = "myholdings.csv";
-  link.click();
-}
 
   if (loading) {
     return <p className="subtitle">Loading portfolio summary...</p>;
