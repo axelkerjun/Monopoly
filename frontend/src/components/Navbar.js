@@ -34,6 +34,13 @@ export default function Navbar() {
       >
         Watchlist
       </button>
+
+      <button
+        className="navButton"
+        onClick={() => router.push("/reports")}
+      >
+        Reports
+      </button>
     </div>
   );
 }

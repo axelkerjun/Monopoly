@@ -513,3 +513,253 @@ body {
 .portfolioFooter span {
   white-space: nowrap;
 }
+
+.reportGrid4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+  width: 100%;
+}
+
+.reportGrid2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  margin: 24px 0;
+  width: 100%;
+}
+
+.reportCard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.reportCardTitle {
+  margin: 0 0 8px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.reportCard h2 {
+  margin: 0;
+  font-size: 24px;
+  word-break: break-word;
+}
+
+.reportPanel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.fullWidth {
+  margin-top: 24px;
+  width: 100%;
+}
+
+.reportSubheading {
+  margin: 20px 0 12px;
+  font-size: 16px;
+}
+
+.miniList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.miniListRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.miniListRow span,
+.miniListRow strong {
+  min-width: 0;
+  word-break: break-word;
+}
+
+.tableWrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 900px) {
+  .reportGrid4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .reportGrid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .reportGrid4 {
+    grid-template-columns: 1fr;
+  }
+
+  .reportPanel,
+  .reportCard {
+    padding: 16px;
+  }
+}
+
+.sortButton {
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  color: inherit;
+}
+
+.sortButton:hover {
+  text-decoration: underline;
+}
+
+.doughnutGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  width: 100%;
+}
+
+.doughnutBox {
+  height: 260px;
+  width: 100%;
+  position: relative;
+}
+
+@media (max-width: 700px) {
+  .doughnutGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chartRangeButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 8px 0 16px;
+  flex-wrap: wrap;
+}
+
+.chartRangeButton {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chartRangeButton:hover {
+  background: #f3f4f6;
+}
+
+.chartRangeButton.active {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #ffffff;
+}
+
+.correlationTableWrap {
+  width: 100%;
+  overflow-x: auto;
+  padding-top: 24px;
+}
+
+.correlationTable {
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+}
+
+.correlationTable th,
+.correlationTable td {
+  width: 76px;
+  min-width: 76px;
+  max-width: 76px;
+  height: 44px;
+  text-align: center;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.correlationCorner {
+  width: 110px !important;
+  min-width: 110px !important;
+  max-width: 110px !important;
+  background: #ffffff;
+}
+
+.correlationHeaderCell {
+  height: 130px !important;
+  vertical-align: bottom !important;
+  padding: 0 !important;
+  background: #ffffff;
+  position: relative;
+}
+
+.rotatedTicker {
+  position: absolute;
+  bottom: 18px;
+  left: 24px;
+  width: 90px;
+  transform: rotate(-45deg);
+  transform-origin: bottom left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
+  font-size: 13px;
+  color: #1f2937;
+}
+
+.correlationRowHeader {
+  width: 110px !important;
+  min-width: 110px !important;
+  max-width: 110px !important;
+  font-weight: 700;
+  background: #ffffff;
+  text-align: left !important;
+  padding-left: 12px !important;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.correlationCell {
+  font-weight: 700;
+  border: 1px solid #e5e7eb;
+
+}
