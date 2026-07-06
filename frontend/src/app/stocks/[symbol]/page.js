@@ -1,19 +1,14 @@
-export const dynamic = 'force-dynamic'; // Forces Vercel to compute the page live on request
+export const dynamic = 'force-dynamic'; 
 
+import { getMarketSummary } from '@/app/utils/marketData';
 import styles from './styles.module.css';
 
 export default async function StockDetailPage({ params }) {
   const { symbol } = await params;
 
-  // Resolves local development vs. Vercel production hosting URLs seamlessly
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL 
-    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+  const data = await getMarketSummary(symbol);
 
-  const res = await fetch(`${baseUrl}/api/market/summary?symbol=${symbol.toUpperCase()}`, {
-    cache: 'no-store' // Critical to prevent stale financial information bundles
-  });
-
-  if (!res.ok) {
+  if (!data) {
     return (
       <div className={styles.errorBox}>
         <h2 style={{ margin: 0, fontSize: '18px' }}>Stock code not found</h2>
@@ -22,7 +17,7 @@ export default async function StockDetailPage({ params }) {
     );
   }
 
-  const { overview, profile, ratios, news } = await res.json();
+  const { overview, profile, ratios, news } = data;
 
   return (
     <div className={styles.container}>
@@ -39,7 +34,7 @@ export default async function StockDetailPage({ params }) {
           </div>
           
           <div className={styles.priceBlock}>
-            <div className={styles.price}>
+            <div style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em' }}>
               ${overview.price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <span className={`${styles.changeBadge} ${overview.change >= 0 ? styles.positive : styles.negative}`}>
