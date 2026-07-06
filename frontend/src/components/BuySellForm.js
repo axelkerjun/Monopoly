@@ -59,11 +59,23 @@ export default function BuySellForm({ userId }) {
     <div>
       <h2 className="dashboardSectionTitle">
         Log a Stock Transaction
-      </h2>
+      </h2> 
 
       <form onSubmit={handleSubmit} className="form">
         <div className="field">
-          <label>Stock Ticker</label>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+            <label style={{ margin: 0 }}>Stock Ticker</label>
+            {ticker.trim() && (
+              <a 
+                href={`/stocks/${ticker.trim().toUpperCase()}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ fontSize: "14px", color: "#2563eb", textDecoration: "underline", fontWeight: "500" }}
+              >
+                View Detailed Charts ↗
+              </a>
+            )}
+          </div>
           <TickerAutocomplete value={ticker} onChange={setTicker} />
         </div>
 

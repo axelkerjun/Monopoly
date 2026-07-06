@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export default function TickerAutocomplete({ value, onChange }) {
+export default function TickerAutocomplete({ value, onChange, onSelect }) {
   const [query, setQuery] = useState(value || "");
   const [results, setResults] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -58,14 +58,20 @@ export default function TickerAutocomplete({ value, onChange }) {
   function handleInputChange(event) {
     const newValue = event.target.value.toUpperCase();
     setQuery(newValue);
-    onChange(newValue);
+    if (onChange) onChange(newValue);
     setIsOpen(true);
   }
 
   function handleSelect(result) {
-    setQuery(result.tradeSymbol);
-    onChange(result.tradeSymbol);
+    const targetSymbol = result.tradeSymbol;
+    setQuery(targetSymbol);
     setIsOpen(false);
+
+    // 1. Tell the parent element the text changed (for form submissions)
+    if (onChange) onChange(targetSymbol);
+    
+    // 2. Run an optional custom action (like page redirection) ONLY if passed down!
+    if (onSelect) onSelect(result);
   }
 
   return (

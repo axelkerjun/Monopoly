@@ -42,12 +42,12 @@ async function fetchCurrentPrice(ticker) {
 }
 
 export default function Watchlist({ userId }) {
-  const [ticker, setTicker] = useState(""); //stores typed in ticker
-  const [watchlist, setWatchlist] = useState([]); //stores items from db
-  const [prices, setPrices] = useState({}); //stores prices
-  const [message, setMessage] = useState(""); //stores message for added and removed
-  const [isError, setIsError] = useState(false); //controls the message is error or success
-  const [loading, setLoading] = useState(true); //loads saved wl from db
+  const [ticker, setTicker] = useState(""); 
+  const [watchlist, setWatchlist] = useState([]); 
+  const [prices, setPrices] = useState({}); 
+  const [message, setMessage] = useState(""); 
+  const [isError, setIsError] = useState(false); 
+  const [loading, setLoading] = useState(true); 
 
   async function loadWatchlist() {
     if (!userId) return;
@@ -227,7 +227,12 @@ export default function Watchlist({ userId }) {
                       return (
                         <tr key={item.id}>
                           <td style={{ fontWeight: 700, wordBreak: "break-word" }}>
-                            {item.ticker}
+                            <a 
+                              href={`/stocks/${item.ticker}`}
+                              style={{ color: "#2563eb", textDecoration: "underline" }}
+                            >
+                              {item.ticker}
+                            </a>
                           </td>
 
                           <td style={{ textAlign: "center" }}>
