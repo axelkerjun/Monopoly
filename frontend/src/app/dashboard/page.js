@@ -51,11 +51,13 @@ export default function DashboardPage() {
             Search Markets / View Research
           </label>
           <TickerAutocomplete 
-            value={searchSymbol} 
-            onChange={setSearchSymbol} 
-            onSelect={(result) => router.push(`/stocks/${result.tradeSymbol}`)} 
-          />
-          <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "6px", textAlign: "center" }}>
+ 	    value={searchSymbol} 
+ 	    onChange={setSearchSymbol} 
+  	    onSelect={(result) => {
+    	    window.open(`/stocks/${result.tradeSymbol}`, '_blank', 'noopener,noreferrer');
+  	    }} 
+	  />
+	  <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "6px", textAlign: "center" }}>
             Select an autocomplete result to immediately view detailed charts and analysis metrics.
           </p>
         </div>
