@@ -1,11 +1,16 @@
+export const dynamic = 'force-dynamic'; // Forces Vercel to compute the page live on request
+
 import styles from './styles.module.css';
 
 export default async function StockDetailPage({ params }) {
   const { symbol } = await params;
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  // Resolves local development vs. Vercel production hosting URLs seamlessly
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL 
+    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
   const res = await fetch(`${baseUrl}/api/market/summary?symbol=${symbol.toUpperCase()}`, {
-    cache: 'no-store'
+    cache: 'no-store' // Critical to prevent stale financial information bundles
   });
 
   if (!res.ok) {
