@@ -1,7 +1,8 @@
-export const dynamic = 'force-dynamic'; 
+export const dynamic = 'force-dynamic';
 
 import { getMarketSummary } from '@/app/utils/marketData';
 import styles from './styles.module.css';
+import StockChart from "./StockChart";
 
 export default async function StockDetailPage({ params }) {
   const { symbol } = await params;
@@ -22,7 +23,7 @@ export default async function StockDetailPage({ params }) {
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
-        
+
         {/* HEADER BLOCK */}
         <header className={`${styles.card} ${styles.header}`}>
           <div>
@@ -32,7 +33,7 @@ export default async function StockDetailPage({ params }) {
             </div>
             <p style={{ color: '#64748b', margin: '4px 0 0 0', fontWeight: '500' }}>{overview.name}</p>
           </div>
-          
+
           <div className={styles.priceBlock}>
             <div style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em' }}>
               ${overview.price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -42,13 +43,15 @@ export default async function StockDetailPage({ params }) {
             </span>
           </div>
         </header>
+        
+        <StockChart symbol={overview.symbol} currency={overview.currency} />
 
         {/* DASHBOARD GRID */}
         <div className={styles.grid}>
-          
+
           {/* MAIN CONTENT STACK */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            
+
             {/* PROFILE SECTION */}
             <section className={styles.card}>
               <h2 className={styles.sectionTitle}>Company Profile</h2>
