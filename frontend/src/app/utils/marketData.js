@@ -2,14 +2,14 @@
 import YahooFinance from 'yahoo-finance2';
 
 // Safe instantiation inside Next.js Server setups
-const yahooFinance = new YahooFinance(); 
+const yahooFinance = new YahooFinance();
 
 export async function getMarketSummary(symbol) {
   if (!symbol) return null;
   const cleanSymbol = symbol.toUpperCase();
 
   try {
-    const queryOptions = { modules: ['price', 'summaryDetail', 'defaultKeyStatistics'] };
+    const queryOptions = { modules: ['price', 'summaryDetail', 'defaultKeyStatistics', "assetProfile", "financialData"] };
 
     // Executing your exact parallel performance data calls!
     const [rawData, searchData] = await Promise.all([
@@ -32,17 +32,40 @@ export async function getMarketSummary(symbol) {
         marketCap: rawData.price?.marketCap || 0,
       },
       profile: {
-        sector: rawData.summaryDetail?.sector || 'N/A',
-        industry: rawData.summaryDetail?.industry || 'N/A',
-        description: rawData.summaryDetail?.longBusinessSummary || 'No description available.',
+        sector: rawData.assetProfile?.sector || "N/A",
+        industry: rawData.assetProfile?.industry || "N/A",
+        description:
+          rawData.assetProfile?.longBusinessSummary || "No description available.",
       },
       ratios: {
-        peRatioTTM: rawData.summaryDetail?.trailingPE || null,
-        priceToBookRatioTTM: rawData.defaultKeyStatistics?.priceToBook || null,
-        returnOnEquityTTM: rawData.defaultKeyStatistics?.returnOnEquity || null,
-        returnOnAssetsTTM: rawData.defaultKeyStatistics?.returnOnAssets || null,
-        netProfitMarginTTM: rawData.defaultKeyStatistics?.profitMargins || null,
-        debtToEquityTTM: rawData.defaultKeyStatistics?.debtToEquity || null,
+        peRatioTTM:
+          rawData.summaryDetail?.trailingPE ??
+          rawData.defaultKeyStatistics?.trailingPE ??
+          null,
+
+        priceToBookRatioTTM:
+          rawData.defaultKeyStatistics?.priceToBook ??
+          null,
+
+        returnOnEquityTTM:
+          rawData.financialData?.returnOnEquity ??
+          rawData.defaultKeyStatistics?.returnOnEquity ??
+          null,
+
+        returnOnAssetsTTM:
+          rawData.financialData?.returnOnAssets ??
+          rawData.defaultKeyStatistics?.returnOnAssets ??
+          null,
+
+        netProfitMarginTTM:
+          rawData.financialData?.profitMargins ??
+          rawData.defaultKeyStatistics?.profitMargins ??
+          null,
+
+        debtToEquityTTM:
+          rawData.financialData?.debtToEquity ??
+          rawData.defaultKeyStatistics?.debtToEquity ??
+          null,
       },
       news: (searchData.news || []).slice(0, 8).map(article => ({
         title: article.title,

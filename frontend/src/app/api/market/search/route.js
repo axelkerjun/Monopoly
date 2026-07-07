@@ -47,7 +47,7 @@ export async function GET(request) {
 
         return {
           symbol: yahooSymbol,
-          tradeSymbol: toAppSymbol(yahooSymbol, item),
+          tradeSymbol: yahooSymbol,
           name: item.shortname || item.longname || item.name || "",
           exchange: item.exchDisp || item.exchange || "",
           type: item.typeDisp || item.quoteType || "",
