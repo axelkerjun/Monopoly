@@ -437,6 +437,8 @@ function findClosestPointOnOrAfter(history, date) {
   return history.find((point) => point.date >= date) || null;
 }
 
+const CORRELATION_LOOKBACK_DAYS = 90;
+
 function calculateCorrelationMatrix(historicalDataByTicker) {
   const tickers = Object.keys(historicalDataByTicker);
 
@@ -450,14 +452,55 @@ function calculateCorrelationMatrix(historicalDataByTicker) {
   return tickers.map((tickerA) => ({
     ticker: tickerA,
     correlations: Object.fromEntries(
-      tickers.map((tickerB) => [
-        tickerB,
-        tickerA === tickerB
-          ? 1
-          : calculateCorrelation(returnsByTicker[tickerA], returnsByTicker[tickerB]),
-      ])
+      tickers.map((tickerB) => {
+        if (tickerA === tickerB) {
+          return [tickerB, 1];
+        }
+
+        const correlation = calculateTrailingCorrelation(
+          returnsByTicker[tickerA],
+          returnsByTicker[tickerB],
+          CORRELATION_LOOKBACK_DAYS
+        );
+
+        return [tickerB, correlation];
+      })
     ),
   }));
+}
+
+function calculateTrailingCorrelation(returnsA, returnsB, lookbackDays) {
+  const commonDates = [...returnsA.keys()]
+    .filter((date) => returnsB.has(date))
+    .sort()
+    .slice(-lookbackDays);
+
+  if (commonDates.length < 2) return null;
+
+  const valuesA = commonDates.map((date) => returnsA.get(date));
+  const valuesB = commonDates.map((date) => returnsB.get(date));
+
+  const meanA = average(valuesA);
+  const meanB = average(valuesB);
+
+  let numerator = 0;
+  let denominatorA = 0;
+  let denominatorB = 0;
+
+  for (let i = 0; i < commonDates.length; i++) {
+    const diffA = valuesA[i] - meanA;
+    const diffB = valuesB[i] - meanB;
+
+    numerator += diffA * diffB;
+    denominatorA += diffA * diffA;
+    denominatorB += diffB * diffB;
+  }
+
+  const denominator = Math.sqrt(denominatorA * denominatorB);
+
+  if (denominator === 0) return null;
+
+  return round(numerator / denominator);
 }
 
 function calculateDailyReturns(prices) {

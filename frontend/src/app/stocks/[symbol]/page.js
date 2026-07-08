@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { getMarketSummary } from '@/app/utils/marketData';
 import styles from './styles.module.css';
 import StockChart from "./StockChart";
+import StockSentiment from "./StockSentiment";
 
 export default async function StockDetailPage({ params }) {
   const { symbol } = await params;
@@ -43,8 +44,10 @@ export default async function StockDetailPage({ params }) {
             </span>
           </div>
         </header>
-        
+
         <StockChart symbol={overview.symbol} currency={overview.currency} />
+
+        <StockSentiment symbol={overview.symbol} />
 
         {/* DASHBOARD GRID */}
         <div className={styles.grid}>
@@ -111,7 +114,18 @@ export default async function StockDetailPage({ params }) {
                       <h3>{article.title}</h3>
                       <div className={styles.newsMeta}>
                         <span style={{ color: '#2563eb', fontWeight: '600' }}>{article.site}</span>
-                        <span>{new Date(article.publishedDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                        <span>
+                          {article.publishedDate
+                            ? new Date(article.publishedDate).toLocaleString("en-SG", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              timeZone: "Asia/Singapore",
+                            })
+                            : "Unknown date"}
+                        </span>
                       </div>
                     </a>
                   </div>

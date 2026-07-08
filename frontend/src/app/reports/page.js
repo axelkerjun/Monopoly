@@ -521,7 +521,7 @@ function ReturnsPanel({ multiPeriodReturns, drawdownRisk }) {
 function CorrelationMatrix({ correlationMatrix }) {
   return (
     <section className="reportPanel fullWidth">
-      <h2 className="holdingsTitle">Correlation Matrix</h2>
+      <h2 className="holdingsTitle"> 90-day Trailing Correlation Matrix</h2>
 
       {correlationMatrix.length === 0 ? (
         <p className="subtitle">Not enough price history for correlation.</p>

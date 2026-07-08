@@ -252,3 +252,142 @@
 .negativeText {
   color: #be123c;
 }
+
+.sentimentSummary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.sentimentSummary > div {
+  background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.sentimentLabel {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 4px 0 0 0;
+  color: #334155;
+}
+
+.sentimentCounts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.sentimentCounts span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 6px 8px;
+  border-radius: 999px;
+}
+
+.hiddenNewsSection {
+  margin-top: 18px;
+}
+
+.newsToggleButton {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  color: #334155;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.newsToggleButton:hover {
+  background-color: #f1f5f9;
+}
+
+.sentimentNewsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.sentimentNewsItem {
+  display: grid;
+  grid-template-columns: 1fr 150px;
+  gap: 14px;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  background-color: #ffffff;
+}
+
+.sentimentNewsText h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+  line-height: 1.45;
+}
+
+.sentimentNewsText p {
+  font-size: 12px;
+  font-weight: 400;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.sentimentResultBox {
+  border-radius: 10px;
+  padding: 11px 12px;
+  text-align: center;
+}
+
+.sentimentResultBox strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.sentimentResultBox span {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.bullishSentiment {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.bearishSentiment {
+  background-color: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+}
+
+.neutralSentiment {
+  background-color: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+@media (max-width: 768px) {
+  .sentimentNewsItem {
+    grid-template-columns: 1fr;
+  }
+
+  .sentimentResultBox {
+    text-align: left;
+  }
+}
