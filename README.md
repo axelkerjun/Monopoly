@@ -44,6 +44,13 @@ https://monopoly-theta-seven.vercel.app/
 * Portfolio value timeline chart
 * Neon PostgreSQL database integration
 * Vercel deployment
+* Reports page with portfolio analytics
+* Individual stock search and analytics page
+* Stock price chart with timeline filters
+* Company profile and valuation metrics
+* Recent stock news display
+* NLP-based stock sentiment analysis
+* Bullish, neutral, and bearish article classification with confidence scores
 
 ## Technology Stack
 
@@ -61,15 +68,18 @@ https://monopoly-theta-seven.vercel.app/
 
 * Next.js API Routes
 * Node.js
+* Server-side NLP inference route
 
 ### Database
 
 * PostgreSQL
 * Neon
 
-### Market Data
+### Market Data and NLP
 
 * yahoo-finance2
+* Hugging Face Inference API
+* FinBERT financial sentiment model
 
 ### Deployment
 
@@ -110,7 +120,11 @@ Monopoly
 │   │   │   │   │   │   └── route.js
 │   │   │   │   │   ├── quote
 │   │   │   │   │   │   └── route.js
-│   │   │   │   │   └── search
+│   │   │   │   │   ├── search
+│   │   │   │   │   │   └── route.js
+│   │   │   │   │   ├── sentiment
+│   │   │   │   │   │   └── route.js
+│   │   │   │   │   └── summary
 │   │   │   │   │       └── route.js
 │   │   │   │   │
 │   │   │   │   ├── portfolio
@@ -136,6 +150,20 @@ Monopoly
 │   │   │   │
 │   │   │   ├── transactions
 │   │   │   │   └── page.js
+│   │   │   │
+│   │   │   ├── reports
+│   │   │   │   └── page.js
+│   │   │   │
+│   │   │   ├── stocks
+│   │   │   │   └── [symbol]
+│   │   │   │       │── page.js
+│   │   │   │       │── loading.js
+│   │   │   │       │── StockChart.js
+│   │   │   │       │── StockSentiment.js
+│   │   │   │       └── style.module.css
+│   │   │   │
+│   │   │   ├── utils
+│   │   │   │   └── marketData.js
 │   │   │   │
 │   │   │   ├── favicon.ico
 │   │   │   ├── globals.css
@@ -341,7 +369,132 @@ This feature helps users visualize portfolio growth, losses, and performance tre
 
 The timeline chart uses a Next.js API route that retrieves the user's transactions and fetches historical prices for each ticker. The route simulates the user's holdings over time by applying `BUY` and `SELL` transactions in date order. It then calculates the portfolio value for each date and returns the data to the frontend. The `PortfolioTimeline` React component uses Chart.js and `react-chartjs-2` to display the data as a line chart.
 
-### 12. Neon PostgreSQL Database Integration
+### 12. Reports Page
+
+The application includes a reports page that provides a more analytical view of the user's portfolio.
+
+The reports page is designed to summarize portfolio performance and provide users with a clearer understanding of their holdings beyond the main dashboard.
+
+The reports page can include:
+
+Portfolio value summary
+Portfolio returns
+Currency exposure
+Holdings breakdown
+Performance trends
+Risk and diversification-related metrics
+
+This feature separates higher-level portfolio analysis from the main dashboard. The dashboard focuses on daily portfolio tracking, while the reports page focuses on analytical insights and portfolio review.
+
+The reports page uses existing transaction, holdings, market price, and historical price data from the application's backend API routes. This allows the app to reuse the same market data and portfolio calculation logic while presenting the information in a more report-style format.
+
+### 13. Individual Stock Analytics Page
+
+The application includes a dynamic individual stock analytics page.
+
+Users can search for or select a stock ticker and open a dedicated stock page such as:
+
+/stocks/NVDA
+/stocks/AAPL
+/stocks/D05.SI
+/stocks/BTC-USD
+
+Each stock page displays detailed market and company information for the selected asset.
+
+The individual stock page includes:
+
+Stock ticker and company name
+Current market price
+Daily price change and percentage change
+Exchange and currency
+Company sector and industry
+Market capitalization
+Business summary
+Valuation metrics
+Recent news
+Interactive price chart
+NLP-based sentiment analysis
+
+This feature gives users a research-style workflow similar to financial platforms such as Yahoo Finance. Instead of only tracking owned holdings, users can inspect individual stocks in more detail before adding them to their portfolio or watchlist.
+
+The page is implemented using a dynamic Next.js route at:
+
+src/app/stocks/[symbol]/page.js
+
+The page retrieves market data using a shared marketData utility and displays the result using modular components such as StockChart and StockSentiment.
+
+### 14. Stock Price Chart with Timeline Filters
+
+The individual stock analytics page includes an interactive stock price chart built using Chart.js and react-chartjs-2.
+
+The chart displays historical closing prices for the selected stock or asset. Users can switch between different timeline ranges, such as:
+
+1M
+3M
+6M
+YTD
+1Y
+ALL
+
+The chart data is retrieved from the Yahoo Finance history API route. The frontend fetches historical prices, filters the data based on the selected timeline, and renders the closing price as a line chart.
+
+This feature allows users to visually inspect recent and long-term price movement for each stock. It also reuses the same Chart.js library already used for the portfolio timeline chart, keeping the visualization stack consistent across the application.
+
+### 15. Fundamental Stock Data and Recent News
+
+The individual stock page displays fundamental company information and recent news.
+
+The fundamental section includes:
+
+P/E ratio
+P/B ratio
+Return on equity
+Return on assets
+Net profit margin
+Debt-to-equity ratio
+
+The company profile section includes:
+
+Sector
+Industry
+Market capitalization
+Business description
+
+This data is fetched using the yahoo-finance2 package through a server-side utility function. The app requests Yahoo Finance modules such as price, summaryDetail, defaultKeyStatistics, assetProfile, and financialData.
+
+The recent news section retrieves news articles related to the selected ticker. News articles are sorted by publish time and displayed with their title, source, and formatted publication date.
+
+This feature makes the individual stock page more useful for investment research because users can view both quantitative company metrics and recent qualitative news in one place.
+
+### 16. NLP-Based Stock Sentiment Analysis
+
+The application includes an NLP-based stock sentiment analysis feature on the individual stock analytics page.
+
+The system retrieves recent stock-related news and sends each article headline to a finance-specific NLP sentiment model. The model classifies each article as positive, neutral, or negative. The application then maps these labels into investment-style sentiment labels:
+
+Positive → Bullish
+Neutral → Neutral
+Negative → Bearish
+
+Each article receives:
+
+Sentiment label
+Confidence score
+Numeric sentiment score
+
+The sentiment score is calculated as:
+
+Bullish = positive confidence score
+Neutral = 0
+Bearish = negative confidence score
+
+The app then aggregates the article-level scores into an overall stock sentiment score. This gives users a simple summary of whether recent news sentiment is generally bullish, neutral, or bearish.
+
+The sentiment analyser is displayed inside the individual stock page. To keep the UI clean, the card first shows only the overall sentiment summary, article count, and bullish/neutral/bearish breakdown. Users can expand a dropdown to view the individual analysed news articles and their confidence scores.
+
+This feature adds an AI/NLP layer to the application and demonstrates integration between market data, financial news, backend API processing, and machine learning inference.
+
+### 17. Neon PostgreSQL Database Integration
 
 The application uses Neon PostgreSQL as its cloud-hosted database.
 
@@ -357,7 +510,7 @@ Using Neon allows the application to store persistent data even after the app is
 
 The application connects to Neon PostgreSQL using the `pg` package. The database connection string is stored in environment variables as `DATABASE_URL`. API routes create database queries through a PostgreSQL connection pool, allowing the app to read and write user and transaction data.
 
-### 13. Next.js API Routes
+### 18. Next.js API Routes
 
 The backend logic is implemented using Next.js API routes.
 
@@ -371,7 +524,7 @@ Implemented API routes include:
 
 The frontend calls these routes using relative paths such as `/api/auth/login` and `/api/transactions`, which work both locally and on Vercel.
 
-### 14. Vercel Deployment
+### 19. Vercel Deployment
 
 The application is deployed on Vercel.
 
@@ -466,14 +619,20 @@ This installs all packages listed in `package.json`, including:
 * `yahoo-finance2`
 * `chart.js`
 * `react-chartjs-2`
+* `@huggingface/inference`
 
 ### 3. Configure Environment Variables
 
-Create a `.env.local` file inside the `frontend` folder.
+Create a .env.local file inside the frontend folder.
 
-```env
 DATABASE_URL=your_neon_connection_string
-```
+HF_TOKEN=your_hugging_face_token
+
+DATABASE_URL is used to connect the application to the Neon PostgreSQL database.
+
+HF_TOKEN is used by the stock sentiment analysis API route to call the hosted Hugging Face FinBERT sentiment model.
+
+Do not commit .env.local to GitHub because it contains private credentials.
 
 Do not commit `.env.local` to GitHub because it contains private database credentials.
 
@@ -510,7 +669,11 @@ http://localhost:3000
 
 ```env
 DATABASE_URL=your_neon_connection_string
+HF_TOKEN=your_hugging_face_token
 ```
+DATABASE_URL allows the deployed API routes to connect to the Neon database.
+
+HF_TOKEN allows the deployed sentiment analysis route to call the Hugging Face inference API.
 
 5. Deploy the project.
 
@@ -534,6 +697,8 @@ DATABASE_URL=your_neon_connection_string
 | Vercel          | Deployment platform                        |
 | yahoo-finance2  | Fetches Yahoo Finance market data          |
 | Chart.js        | Displays the portfolio timeline graph      |
+| Hugging Face Inference API | Runs the FinBERT financial sentiment model
+| FinBERT | Classifies stock news as bullish, neutral, or bearish
 
 ## Technical Decisions
 
@@ -552,6 +717,26 @@ Yahoo Finance was used through the `yahoo-finance2` package because the app requ
 ### Why Chart.js?
 
 Chart.js was chosen to visualize portfolio value over time because it is lightweight, widely used, and integrates well with React through `react-chartjs-2`.
+
+### Why Individual Stock Analytics?
+
+The individual stock analytics page was added to separate stock research from portfolio tracking. The dashboard focuses on the user's owned holdings, while the individual stock page allows users to inspect any selected stock in more detail.
+
+### Why NLP Sentiment Analysis?
+
+NLP sentiment analysis was added to provide an AI-driven qualitative signal for stock research.
+
+Financial news can affect investor perception, but manually reading multiple articles is time-consuming. The sentiment analyser processes recent stock news headlines using a finance-specific language model and classifies each article as bullish, neutral, or bearish.
+
+The feature is not intended to predict stock prices. Instead, it provides an additional research signal by summarizing the tone of recent stock-related news.
+
+This improves the user workflow because users can search for a stock, view its price chart, review company fundamentals, read recent news, and check NLP-based sentiment before deciding whether to add it to their watchlist or portfolio.
+
+### Why Hugging Face and FinBERT?
+
+Hugging Face was used because it allows the application to call a hosted NLP model from a backend API route without maintaining a separate Python machine learning server.
+
+FinBERT was selected because it is designed for financial sentiment classification. This makes it more suitable for stock-related news than a general-purpose sentiment model.
 
 ## Software Engineering Practices Applied
 
@@ -576,6 +761,22 @@ The holdings CSV export is generated on the client side using JavaScript. The ap
 ### Feature Modularity
 The watchlist feature is separated into its own page, component, API routes, and database table. This keeps the feature easier to maintain and prevents the dashboard code from becoming too crowded.
 
+### Dynamic Routing
+
+The individual stock analytics page uses a dynamic Next.js route at /stocks/[symbol]. This allows the same page component to render analytics for different stocks based on the selected ticker.
+
+### Backend API Encapsulation
+
+The sentiment analysis logic is kept inside a server-side API route. This prevents the Hugging Face API token from being exposed to the frontend and keeps external model calls separated from UI components.
+
+### Reusable Analytics Components
+
+The stock chart and sentiment analyser are implemented as separate components. This keeps the individual stock page easier to maintain and allows each analytics feature to be developed independently.
+
+### Data Normalization
+
+Market data from Yahoo Finance is normalized before being displayed. This includes converting URL symbols, handling different timestamp formats, sorting news by publish time, and formatting values such as currency, percentages, and ratios.
+
 ## API Routes
 
 | Route | Method | Purpose |
@@ -590,10 +791,13 @@ The watchlist feature is separated into its own page, component, API routes, and
 | `/api/market/quote`                | GET | Fetches current market price |
 | `/api/market/history`              | GET | Fetches historical price data |
 | `/api/market/search`               | GET | Searches tickers for autocomplete |
+| `/api/market/summary` | GET | Fetches stock overview, profile, ratios, and recent news
+| `/api/market/sentiment` | GET | Runs NLP sentiment analysis on recent stock news
 | `/api/portfolio/timeline/[userId]` | GET | Generates portfolio timeline data |
 | `/api/watchlist`                   | GET | Retrieves the logged-in user's watchlist |
 | `/api/watchlist`                   | POST | Adds a ticker to the user's watchlist |
 | `/api/watchlist/[id]`              | DELETE | Removes a ticker from the user's watchlist |
+
 
 ## Feature Evidence
 
@@ -608,21 +812,25 @@ The watchlist feature is separated into its own page, component, API routes, and
 | CSV Upload | `src/components/CSVuploader.js` |
 | Watchlist | `src/components/Watchlist.js`, `src/app/watchlist/page.js`, `src/app/api/watchlist/route.js` |
 | Holdings CSV Export | `src/components/SummaryCards.js` |
+| Reports Page | src/app/reports/page.js
+| Individual Stock Analytics | src/app/stocks/[symbol]/page.js, src/app/utils/marketData.js
+| Stock Price Chart | src/app/stocks/[symbol]/StockChart.js, src/app/api/market/history/route.js
+| Stock Sentiment Analysis | src/app/stocks/[symbol]/StockSentiment.js, src/app/api/market/sentiment/route.js
+| Stock Summary Data | src/app/api/market/summary/route.js, src/app/utils/marketData.js
+
 
 ## Limitations
 
-* The application does not execute real trades.
-* Market prices are fetched from Yahoo Finance and may be delayed or unavailable for some tickers.
-* Portfolio values are grouped by currency and are not automatically converted into one base currency.
-
-## Future Enhancements
-* Transaction history filtering
-* Risk and volatility analytics
-* Stock correlation analysis for hedging
-* More advanced portfolio performance metrics
-* Improved session management
+* NLP sentiment analysis is based on recent news headlines and should not be interpreted as a stock price prediction.
+* Sentiment results depend on the availability and quality of recent Yahoo Finance news.
+* Some non-US stocks and cryptocurrencies may have limited fundamental data or news coverage.
 
 ## Summary 
 
-Monopoly is a portfolio tracking application that combines software engineering and quantitative finance concepts. It allows users to manage transactions, calculate holdings, fetch market prices, monitor watchlist tickers, export portfolio reports and visualize portfolio performance over time.
+Summary
 
+Monopoly is a portfolio tracking application that combines software engineering, market data integration, and quantitative finance concepts. It allows users to manage transactions, calculate holdings, fetch market prices, monitor watchlist tickers, export portfolio reports, and visualize portfolio performance over time.
+
+The application also includes a reports page for portfolio-level analytics and an individual stock analytics page for deeper stock research. Users can view stock fundamentals, interactive price charts, recent news, and NLP-based sentiment analysis for selected stocks.
+
+The project demonstrates full-stack development using Next.js API routes, Neon PostgreSQL, Yahoo Finance market data, Chart.js visualizations, and AI-powered financial sentiment analysis.
