@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@huggingface/inference": "^4.13.22",
@@ -24,7 +26,10 @@
     "yahoo-finance2": "^3.15.3"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.3",
     "eslint": "^9",
-    "eslint-config-next": "16.2.6"
+    "eslint-config-next": "16.2.6",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.10"
   }
 }
