@@ -87,6 +87,12 @@ https://monopoly-theta-seven.vercel.app/
 * Neon
 * GitHub
 
+##Testing
+
+* Vitest
+* React Testing Library
+* jsdom
+
 ## Project Structure
 
 ```txt
@@ -98,6 +104,10 @@ Monopoly
 │
 ├── frontend
 │   ├── public
+│   │
+│   ├── __tests__
+│   │   ├── components.test.jsx
+│   │   └── holdings.test.jsx
 │   │
 │   ├── src
 │   │   ├── app
@@ -620,6 +630,10 @@ This installs all packages listed in `package.json`, including:
 * `chart.js`
 * `react-chartjs-2`
 * `@huggingface/inference`
+* `vitest`
+* `@testing-library/react`
+* `@testing-library/jest-dom`
+* `jsdom`
 
 ### 3. Configure Environment Variables
 
@@ -777,6 +791,30 @@ The stock chart and sentiment analyser are implemented as separate components. T
 
 Market data from Yahoo Finance is normalized before being displayed. This includes converting URL symbols, handling different timestamp formats, sorting news by publish time, and formatting values such as currency, percentages, and ratios.
 
+## Testing
+
+The project includes automated tests using Vitest and React Testing Library.
+
+Testing is used to verify both frontend component rendering and portfolio calculation logic. This helps ensure that key parts of the application continue working correctly when new features are added.
+
+### Test Files
+
+| Test File | Purpose |
+|---|---|
+| `frontend/__tests__/components.test.jsx` | Tests dashboard UI rendering and return styling |
+| `frontend/__tests__/holdings.test.js` | Tests holdings calculation logic for buy and sell transactions |
+
+### Component UI Tests
+
+The component test checks whether the portfolio summary UI renders the correct values and applies the correct styling based on portfolio returns.
+
+The test verifies that:
+
+- Portfolio summary text renders correctly
+- Net worth values display correctly
+- Positive returns are styled in green
+- Negative returns are styled in red
+
 ## API Routes
 
 | Route | Method | Purpose |
@@ -817,7 +855,7 @@ Market data from Yahoo Finance is normalized before being displayed. This includ
 | Stock Price Chart | src/app/stocks/[symbol]/StockChart.js, src/app/api/market/history/route.js
 | Stock Sentiment Analysis | src/app/stocks/[symbol]/StockSentiment.js, src/app/api/market/sentiment/route.js
 | Stock Summary Data | src/app/api/market/summary/route.js, src/app/utils/marketData.js
-
+| Testing | `frontend/__tests__/components.test.jsx`, `frontend/__tests__/holdings.test.js` |
 
 ## Limitations
 
